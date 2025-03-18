@@ -1,6 +1,6 @@
 # Evaluation of a Position
 ### Resources:
-- [Chess Programming Wiki](https://www.chessprogramming.org/Evaluation)
+- [Chess Programming Wiki on evaluation](https://www.chessprogramming.org/Evaluation)
 - [Implementation of evaluation function](https://www.chessprogramming.org/CPW-Engine_eval)
 - [Easier implementation of evaluation function](https://www.chessprogramming.org/Evaluation_Function_Draft)
 - [Transportation table](https://www.chessprogramming.org/Transposition_Table) [Evaluation table](https://www.chessprogramming.org/Evaluation_Hash_Table#Forum_Posts)
