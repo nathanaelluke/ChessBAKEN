@@ -102,18 +102,37 @@ class MCTreeSearch:
     def take_action(self, action):
         self.root = self.root.children[action]
 
+    def print_tree(self, node=None, indent=1):
+        if node is None:
+            print(f'Root (visits: {self.root.visits}, score: {self.root.score})')
+            node = self.root
+            
+        for child in node.children.keys():
+            str = ""
+            for _ in range(indent):
+                str += "    "
+            str += f'{child} (visits: {node.children[child].visits}, score: {node.children[child].score})'
+            print(str)
+            self.print_tree(node.children[child], indent + 1)
 
 def main():
     tree_search = MCTreeSearch(chess.Board())
     game = chess.pgn.Game()
     node = game
+
+    tree_search.print_tree()
     for i in range(100):
-        tree_search.search_for_iterations(100)
-        action = tree_search.best_action()
-        print(action)
-        tree_search.take_action(action)
-        node = node.add_variation(chess.Move.from_uci(action))
-        print(tree_search.root.state)
+        tree_search.search_iteration()
+        tree_search.print_tree()
+        input("Press Enter to continue...")
+
+    # for i in range(100):
+    #     tree_search.search_for_iterations(100)
+    #     action = tree_search.best_action()
+    #     print(action)
+    #     tree_search.take_action(action)
+    #     node = node.add_variation(chess.Move.from_uci(action))
+    #     print(tree_search.root.state)
 
     print(game, file=open("game.pgn", "w"), end="\n\n")
 
