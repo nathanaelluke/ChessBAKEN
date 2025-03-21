@@ -6,21 +6,21 @@ import pygame
 def loadImages():
     pieces = {}
     imagePath = "./Images"
-    piece_map = {
+    pieceMap = {
         'p': 'b_pawn.png', 'r': 'b_rook.png', 'n': 'b_knight.png', 'b': 'b_bishop.png', 'q': 'b_queen.png', 'k': 'b_king.png',
         'P': 'w_pawn.png', 'R': 'w_rook.png', 'N': 'w_knight.png', 'B': 'w_bishop.png', 'Q': 'w_queen.png', 'K': 'w_king.png'
     }
     
-    for piece, filename in piece_map.items():
+    for piece, filename in pieceMap.items():
         pieces[piece] = pygame.transform.scale(
             pygame.image.load(f"{imagePath}/{filename}"), (100, 100))
     
     return pieces
 
 # Draws the pygame board
-def drawBoard(screen, board, pieceImages, selSquare, player_turn):
+def drawBoard(screen, board, pieceImages, selSquare, playerTurn):
     colors = [pygame.Color("darkgreen"), pygame.Color("lightgray")]  # Improved visibility
-    square_size = 100
+    squareSize = 100
     
     for row in range(8):
         for col in range(8):
@@ -41,26 +41,26 @@ def drawBoard(screen, board, pieceImages, selSquare, player_turn):
                 elif board.turn and str(piece) == 'K':
                     color = pygame.Color("yellow")
             
-            pygame.draw.rect(screen, color, pygame.Rect(col * square_size, row * square_size, square_size, square_size))
+            pygame.draw.rect(screen, color, pygame.Rect(col * squareSize, row * squareSize, squareSize, squareSize))
             
             if piece:
-                screen.blit(pieceImages[piece.symbol()], (col * square_size, row * square_size))
+                screen.blit(pieceImages[piece.symbol()], (col * squareSize, row * squareSize))
 
 # Displays a game
 def displayGame():
     pygame.init()
-    square_size = 100 # Size of board
+    squareSize = 100 # Size of board
     board = chess.Board() # Blank board
-    screen = pygame.display.set_mode((square_size * 8, square_size * 8))
+    screen = pygame.display.set_mode((squareSize * 8, squareSize * 8))
     pieceImages = loadImages() # Images from image directory
     selSquare = None # The square the player has selected
-    player_turn = chess.WHITE  # Whose turn
+    playerTurn = chess.WHITE  # Whose turn
     dragging = False # If a piece has been clicked
     running = True # If the game is running
 
     while running:
         screen.fill(pygame.Color("black"))
-        drawBoard(screen, board, pieceImages, selSquare, player_turn)
+        drawBoard(screen, board, pieceImages, selSquare, playerTurn)
         pygame.display.flip()
         
         # The code below was for testing the board's functionality.
@@ -73,29 +73,29 @@ def displayGame():
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
-                col, row = x // square_size, y // square_size
+                col, row = x // squareSize, y // squareSize
                 square = chess.square(col, 7 - row)
                 print(f"Square: {square}")
                 piece = board.piece_at(square)
                 print(f"Piece: {piece}")
-                if piece and piece.color == player_turn:
+                if piece and piece.color == playerTurn:
                     selSquare = (col, row)
                     dragging = True
             elif event.type == pygame.MOUSEBUTTONUP and selSquare and dragging:
                 x, y = event.pos
-                new_col, new_row = x // square_size, y // square_size
+                newCol, newRow = x // squareSize, y // squareSize
                 
                 # Stops crash when placing piece on same square
-                if new_col == col and new_row == row:
+                if newCol == col and newRow == row:
                     break
 
                 move = chess.Move.from_uci(f"{chess.square_name(
                     chess.square(col, 7 - row))}{
-                        chess.square_name(chess.square(new_col, 7 - new_row))}")
+                        chess.square_name(chess.square(newCol, 7 - newRow))}")
                 print(f"Move: {move}")
                 if move in board.legal_moves:
                     board.push(move)
-                    player_turn = not player_turn
+                    playerTurn = not playerTurn
                 selSquare = None
                 dragging = False
             
@@ -106,7 +106,7 @@ def displayGame():
                     board = chess.Board()
                     pieceImages = loadImages()
                     selSquare = None
-                    player_turn = chess.WHITE
+                    playerTurn = chess.WHITE
                     dragging = False
         ######################## FOR TESTING ########################
 
