@@ -1,20 +1,19 @@
 import chess
 import chess.pgn
 import pygame
-import sys
-import os
 
 # Grabs images from image directory
 def loadImages():
     pieces = {}
-    imagePath = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Images")
+    imagePath = "./Images"
     piece_map = {
         'p': 'b_pawn.png', 'r': 'b_rook.png', 'n': 'b_knight.png', 'b': 'b_bishop.png', 'q': 'b_queen.png', 'k': 'b_king.png',
         'P': 'w_pawn.png', 'R': 'w_rook.png', 'N': 'w_knight.png', 'B': 'w_bishop.png', 'Q': 'w_queen.png', 'K': 'w_king.png'
     }
     
     for piece, filename in piece_map.items():
-        pieces[piece] = pygame.transform.scale(pygame.image.load(os.path.join(imagePath, filename)), (100, 100))
+        pieces[piece] = pygame.transform.scale(
+            pygame.image.load(f"{imagePath}/{filename}"), (100, 100))
     
     return pieces
 
@@ -71,7 +70,7 @@ def displayGame():
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
-                sys.exit()
+                running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
                 x, y = event.pos
                 col, row = x // square_size, y // square_size
@@ -110,6 +109,7 @@ def displayGame():
                     player_turn = chess.WHITE
                     dragging = False
         ######################## FOR TESTING ########################
+
     print("Result:", board.result())
 
 # Kick off a game
