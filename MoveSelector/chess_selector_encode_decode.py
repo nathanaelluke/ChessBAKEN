@@ -200,7 +200,7 @@ def testEncodeDecode():
     moveMap = getMappingMatrix()
     with open('MoveSelector/moveSelectorDataset.csv', 'r') as file:
         data = list(csv.reader(file))
-    curr = data[250]
+    curr = data[0]
     encoded = encodeSelector(curr[1], curr[2], moveMap)
 
     # Decode board
