@@ -1,4 +1,5 @@
 import chess
+import csv
 
 # The number of possible pieces and square states (8*8*6*2)
 NUM_BOARD_NODES = 768
@@ -46,56 +47,58 @@ def getMappingMatrix():
     return moveMap
 
 # Encode a board position and legal moves into a binary array
-def encodeSelector(board, moveMap):
+def encodeSelector(boardFEN, moves, moveMap):
     # Encode board position
     encodedBoard = [0 for _ in range(NUM_BOARD_NODES)]
+    rowsFEN = boardFEN.split('/')
     for i in range(8):
-        for j in range(8):
-            piece = str(board.piece_at(
-                chess.parse_square(chr(i+97) + chr(j+49))))
-            # Piece: P = 0, R = 1, N = 2, B = 3, Q = 4, K = 5
-            # Color: W = 0, B = 1
-            match piece:
-                case 'P':
-                    idx = (8*6*2*i) + (6*2*j) + (0*2) + 0
-                    encodedBoard[idx] = 1
-                case 'N':
-                    idx = (8*6*2*i) + (6*2*j) + (1*2) + 0
-                    encodedBoard[idx] = 1
-                case 'B':
-                    idx = (8*6*2*i) + (6*2*j) + (2*2) + 0
-                    encodedBoard[idx] = 1
-                case 'R':
-                    idx = (8*6*2*i) + (6*2*j) + (3*2) + 0
-                    encodedBoard[idx] = 1
-                case 'Q':
-                    idx = (8*6*2*i) + (6*2*j) + (4*2) + 0
-                    encodedBoard[idx] = 1
-                case 'K':
-                    idx = (8*6*2*i) + (6*2*j) + (5*2) + 0
-                    encodedBoard[idx] = 1
-                case 'p':
-                    idx = (8*6*2*i) + (6*2*j) + (0*2) + 1
-                    encodedBoard[idx] = 1
-                case 'n':
-                    idx = (8*6*2*i) + (6*2*j) + (1*2) + 1
-                    encodedBoard[idx] = 1
-                case 'b':
-                    idx = (8*6*2*i) + (6*2*j) + (2*2) + 1
-                    encodedBoard[idx] = 1
-                case 'r':
-                    idx = (8*6*2*i) + (6*2*j) + (3*2) + 1
-                    encodedBoard[idx] = 1
-                case 'q':
-                    idx = (8*6*2*i) + (6*2*j) + (4*2) + 1
-                    encodedBoard[idx] = 1
-                case 'k':
-                    idx = (8*6*2*i) + (6*2*j) + (5*2) + 1
-                    encodedBoard[idx] = 1
+        col = 0
+        for j in range(len(rowsFEN[i])):
+            if rowsFEN[i][j].isdigit():
+                col += ord(rowsFEN[i][j])-48
+            else:
+                match rowsFEN[i][j]:
+                    case 'P':
+                        idx = (8*6*2*col) + (6*2*i) + (0*2) + 0
+                        encodedBoard[idx] = 1
+                    case 'N':
+                        idx = (8*6*2*col) + (6*2*i) + (1*2) + 0
+                        encodedBoard[idx] = 1
+                    case 'B':
+                        idx = (8*6*2*col) + (6*2*i) + (2*2) + 0
+                        encodedBoard[idx] = 1
+                    case 'R':
+                        idx = (8*6*2*col) + (6*2*i) + (3*2) + 0
+                        encodedBoard[idx] = 1
+                    case 'Q':
+                        idx = (8*6*2*col) + (6*2*i) + (4*2) + 0
+                        encodedBoard[idx] = 1
+                    case 'K':
+                        idx = (8*6*2*col) + (6*2*i) + (5*2) + 0
+                        encodedBoard[idx] = 1
+                    case 'p':
+                        idx = (8*6*2*col) + (6*2*i) + (0*2) + 1
+                        encodedBoard[idx] = 1
+                    case 'n':
+                        idx = (8*6*2*col) + (6*2*i) + (1*2) + 1
+                        encodedBoard[idx] = 1
+                    case 'b':
+                        idx = (8*6*2*col) + (6*2*i) + (2*2) + 1
+                        encodedBoard[idx] = 1
+                    case 'r':
+                        idx = (8*6*2*col) + (6*2*i) + (3*2) + 1
+                        encodedBoard[idx] = 1
+                    case 'q':
+                        idx = (8*6*2*col) + (6*2*i) + (4*2) + 1
+                        encodedBoard[idx] = 1
+                    case 'k':
+                        idx = (8*6*2*col) + (6*2*i) + (5*2) + 1
+                        encodedBoard[idx] = 1
+                col += 1
 
     # Encode possible moves
     encodedMoves = [0 for _ in range(NUM_MOVE_NODES)]
-    for m in board.legal_moves:
+    for m in moves.split(' '):
         startCol = ord(str(m)[0])-97  # e.g. c -> 2
         startRow = ord(str(m)[1])-49  # e.g. 8 -> 7
         endCol = ord(str(m)[2])-97
@@ -146,7 +149,6 @@ def decodePosition(input):
             boardMatrix[int(i / (6*2)) % 8][int(i / (8*6*2))] = pieceLabel
 
     # Convert to FEN notation
-    boardMatrix = list(reversed(boardMatrix))
     boardFEN = ''
     for i in range(len(boardMatrix)):
         empty = 0
@@ -194,34 +196,21 @@ def decodeMoves(input, moveMap):
 
 # Test the encoder and decoder
 def testEncodeDecode():
-    board = chess.Board('rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR')
-
-    # Moves
-    board.push_san('e4')
-    board.push_san('e5')
-    board.push_san('Qf3')
-    board.push_san('Nc6')
-    board.push_san('Bc4')
-    board.push_san('d5')
-    board.push_san('exd5')
-    board.push_san('a5')
-    board.push_san('dxc6')
-    board.push_san('a4')
-    board.push_san('cxb7')
-    board.push_san('a3')
-    board.push_san('bxa8=N')
-
-    # Encode and decode board
-    legal_moves = [move.uci() for move in list(board.legal_moves)]
+    # Encode board
     moveMap = getMappingMatrix()
-    encoded = encodeSelector(board, moveMap)
+    with open('MoveSelector/moveSelectorDataset.csv', 'r') as file:
+        data = list(csv.reader(file))
+    curr = data[250]
+    encoded = encodeSelector(curr[1], curr[2], moveMap)
+
+    # Decode board
     decodedBoard = decodePosition(encoded[0:NUM_BOARD_NODES])
     decodedMoves = decodeMoves(encoded[-NUM_MOVE_NODES:], moveMap)
 
     # Compare original and decoded position/moves
     print('Original position and legal moves: ')
-    print(board)
-    print(legal_moves)
+    print(chess.Board(curr[1]))
+    print(sorted(curr[2].split(' ')))
     print('---------------')
     print('Decoded position and legal moves: ')
     print(decodedBoard)
