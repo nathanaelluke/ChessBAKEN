@@ -1,12 +1,35 @@
 import math
+import numpy as np
 import random
 import time
 import chess
 import chess.pgn
+import torch
+import torch.nn as nn
+from PositionEvaluation import EvalFunctions
+
+# Copied from the notebook in order to use the model here
+# Simple NN architeture
+class ChessNet(nn.Module):
+    def __init__(self):
+        super(ChessNet, self).__init__()
+        # self.fc1 = nn.Linear(64, 128)
+        self.fc1 = nn.Linear(70, 128)
+        self.fc2 = nn.Linear(128, 64)
+        self.fc3 = nn.Linear(64, 1)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x = torch.relu(self.fc1(x))
+        x = torch.relu(self.fc2(x))
+        x = self.sigmoid(self.fc3(x))
+        return x
+
 
 class MCNode:
 
     EXPLORATION_CONSTANT = 2
+    eval_model = None
 
     def __init__(self, state, parent=None):
         self.state = state
@@ -14,6 +37,7 @@ class MCNode:
         self.children = {}
         self.visits = 0
         self.score = 0
+        MCNode.eval_model = torch.load("PositionEvaluation/eval_model.pt", weights_only=False)
 
     def is_leaf(self):
         return len(self.children) == 0
@@ -42,14 +66,20 @@ class MCTreeSearch:
 
     @staticmethod
     def evaluate_state(state):
-        # TODO this will use the evalutation network
-        # for now it just uses material advantage as a heuristic
-        PIECE_VALUES = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3, chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 0}
-        score = 0
-        for square, piece in state.piece_map().items():
-            value = PIECE_VALUES[piece.piece_type]
-            score += value if piece.color == state.turn else -value
+        
+        inputArr = EvalFunctions.fen_to_array(state.fen())
+        inputTensor = torch.tensor(np.array(inputArr), dtype=torch.float32)
+        score = MCNode.eval_model(inputTensor)
         return score
+        
+        # # TODO this will use the evalutation network
+        # # for now it just uses material advantage as a heuristic
+        # PIECE_VALUES = {chess.PAWN: 1, chess.KNIGHT: 3, chess.BISHOP: 3, chess.ROOK: 5, chess.QUEEN: 9, chess.KING: 0}
+        # score = 0
+        # for square, piece in state.piece_map().items():
+        #     value = PIECE_VALUES[piece.piece_type]
+        #     score += value if piece.color == state.turn else -value
+        # return score
 
     @staticmethod
     def rollout(leaf_node, max_depth = 10):
@@ -87,7 +117,11 @@ class MCTreeSearch:
         MCTreeSearch.backpropogate(current_node, score_estimate)
 
     def best_action(self):
-        action = max(self.root.children.keys(), key=lambda child: self.root.children[child].score /self.root.children[child].visits)
+        action = None
+        if self.root.state.turn == chess.WHITE:
+            action = max(self.root.children.keys(), key=lambda child: self.root.children[child].score /self.root.children[child].visits)
+        else:
+            action = min(self.root.children.keys(), key=lambda child: self.root.children[child].score /self.root.children[child].visits)
         return action
     
     def search_for_time(self, thinking_time):
@@ -102,11 +136,30 @@ class MCTreeSearch:
     def take_action(self, action):
         self.root = self.root.children[action]
 
+    def print_tree(self, node=None, indent=1):
+        if node is None:
+            print(f'Root (visits: {self.root.visits}, score: {self.root.score})')
+            node = self.root
+            
+        for child in node.children.keys():
+            str = ""
+            for _ in range(indent):
+                str += "    "
+            str += f'{child} (visits: {node.children[child].visits}, score: {node.children[child].score})'
+            print(str)
+            self.print_tree(node.children[child], indent + 1)
 
 def main():
     tree_search = MCTreeSearch(chess.Board())
     game = chess.pgn.Game()
     node = game
+
+    # tree_search.print_tree()
+    # for i in range(100):
+    #     tree_search.search_iteration()
+    #     tree_search.print_tree()
+    #     input("Press Enter to continue...")
+
     for i in range(100):
         tree_search.search_for_iterations(100)
         action = tree_search.best_action()
