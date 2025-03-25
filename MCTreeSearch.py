@@ -70,7 +70,7 @@ class MCTreeSearch:
         inputArr = EvalFunctions.fen_to_array(state.fen())
         inputTensor = torch.tensor(np.array(inputArr), dtype=torch.float32)
         score = MCNode.eval_model(inputTensor)
-        return score
+        return score.item()
         
         # # TODO this will use the evalutation network
         # # for now it just uses material advantage as a heuristic
@@ -111,7 +111,7 @@ class MCTreeSearch:
             # expand
             current_node.get_actions()
             if (not current_node.is_leaf()):
-                current_node = random.choice(list(current_node.children.values()))
+                current_node = list(current_node.children.values())[0]
         # rollout
         score_estimate = MCTreeSearch.rollout(current_node)
         MCTreeSearch.backpropogate(current_node, score_estimate)
@@ -154,22 +154,21 @@ def main():
     game = chess.pgn.Game()
     node = game
 
-    # tree_search.print_tree()
-    # for i in range(100):
-    #     tree_search.search_iteration()
-    #     tree_search.print_tree()
-    #     input("Press Enter to continue...")
-
+    tree_search.print_tree()
     for i in range(100):
-        tree_search.search_for_iterations(100)
-        action = tree_search.best_action()
-        print(action)
-        tree_search.take_action(action)
-        node = node.add_variation(chess.Move.from_uci(action))
-        print(tree_search.root.state)
+        tree_search.search_iteration()
+        tree_search.print_tree()
+        input("Press Enter to continue...")
 
-    print(game, file=open("game.pgn", "w"), end="\n\n")
+    # for i in range(100):
+    #     tree_search.search_for_iterations(100)
+    #     action = tree_search.best_action()
+    #     print(action)
+    #     tree_search.take_action(action)
+    #     node = node.add_variation(chess.Move.from_uci(action))
+    #     print(tree_search.root.state)
 
+    # print(game, file=open("game.pgn", "w"), end="\n\n")
 
 if __name__ == "__main__":
     main()
