@@ -1,6 +1,8 @@
 import chess
 import chess.pgn
 import pygame
+import torch
+import PositionEvaluation.ValueNetwork as ValueNetwork
 
 # Grabs images from image directory
 def loadImages():
@@ -13,14 +15,14 @@ def loadImages():
     
     for piece, filename in pieceMap.items():
         pieces[piece] = pygame.transform.scale(
-            pygame.image.load(f"{imagePath}/{filename}"), (100, 100))
+            pygame.image.load(f"{imagePath}/{filename}"), (50, 50))
     
     return pieces
 
 # Draws the pygame board
 def drawBoard(screen, board, pieceImages, selSquare, playerTurn):
     colors = [pygame.Color("darkgreen"), pygame.Color("lightgray")]  # Improved visibility
-    squareSize = 100
+    squareSize = 50
     
     for row in range(8):
         for col in range(8):
@@ -49,7 +51,7 @@ def drawBoard(screen, board, pieceImages, selSquare, playerTurn):
 # Displays a game
 def displayGame():
     pygame.init()
-    squareSize = 100 # Size of board
+    squareSize = 50 # Size of board
     board = chess.Board() # Blank board
     screen = pygame.display.set_mode((squareSize * 8, squareSize * 8))
     pieceImages = loadImages() # Images from image directory
@@ -57,6 +59,10 @@ def displayGame():
     playerTurn = chess.WHITE  # Whose turn
     dragging = False # If a piece has been clicked
     running = True # If the game is running
+
+    model = ValueNetwork.ValueNet(8*8*12, 500, 250, 1)
+    model.load_state_dict(torch.load("PositionEvaluation/ValueNet.pt"))
+    model.eval()
 
     while running:
         screen.fill(pygame.Color("black"))
@@ -89,12 +95,14 @@ def displayGame():
                 if newCol == col and newRow == row:
                     break
 
-                move = chess.Move.from_uci(f"{chess.square_name(
-                    chess.square(col, 7 - row))}{
-                        chess.square_name(chess.square(newCol, 7 - newRow))}")
+                move = chess.Move.from_uci(f"{chess.square_name(chess.square(col, 7 - row))}{chess.square_name(chess.square(newCol, 7 - newRow))}")
                 print(f"Move: {move}")
                 if move in board.legal_moves:
                     board.push(move)
+                    print(board)
+                    position_tensor = ValueNetwork.encode_position(board)
+                    prediction = model(position_tensor).item()
+                    print(f"Prediction: {prediction}")
                     playerTurn = not playerTurn
                 selSquare = None
                 dragging = False
