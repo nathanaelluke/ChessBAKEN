@@ -2,7 +2,8 @@ import chess
 import chess.pgn
 import pygame
 import torch
-import PositionEvaluation.ValueNetwork as ValueNetwork
+import PositionEvaluation.EvaluatorBAKEN as Eval
+import numpy as np 
 
 # Grabs images from image directory
 def loadImages():
@@ -60,10 +61,10 @@ def displayGame():
     dragging = False # If a piece has been clicked
     running = True # If the game is running
 
-    model = ValueNetwork.ValueNet(8*8*12, 500, 250, 1)
-    model.load_state_dict(torch.load("PositionEvaluation/ValueNet.pt"))
+    model = Eval.ChessNet()
+    model.load_state_dict(torch.load("PositionEvaluation/EvalModelv0_1.pt"))
     model.eval()
-
+    
     while running:
         screen.fill(pygame.Color("black"))
         drawBoard(screen, board, pieceImages, selSquare, playerTurn)
@@ -100,9 +101,19 @@ def displayGame():
                 if move in board.legal_moves:
                     board.push(move)
                     print(board)
-                    position_tensor = ValueNetwork.encode_position(board)
-                    prediction = model(position_tensor).item()
+                    turn = 1 if board.turn == chess.WHITE else 0
+                    mat = Eval.material_balance(board)
+                    mate = Eval.is_mate(board)
+                    encoding = Eval.encode_board_only(board.fen().split()[0])
+                    inp = encoding + [turn] + [mat] + [mate]
+                    e = torch.tensor(np.array(inp), dtype=torch.float32)
+                    pos = e.unsqueeze(0)
+
+                    with torch.no_grad():
+                        output = model(pos)
+                        prediction = output
                     print(f"Prediction: {prediction}")
+                    
                     playerTurn = not playerTurn
                 selSquare = None
                 dragging = False
