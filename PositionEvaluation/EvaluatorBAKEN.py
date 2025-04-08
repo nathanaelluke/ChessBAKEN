@@ -5,13 +5,16 @@ import chess
 import chess.pgn
 import os
 import csv
-import random
 import numpy as np
+import pandas as pd
+from torch.utils.data import IterableDataset
 from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 from sklearn.metrics import mean_squared_error
 from IPython.display import display, SVG
+from itertools import dropwhile, takewhile
+import math
 
 class DataLoader:
     def __init__(self, data_path):
@@ -66,6 +69,8 @@ class DataLoader:
                 else:
                     self.current_file += 1
 
+# Currently unused. Helped network understand that being in mate always 
+# means the position is lost and mating means it is won.
 def is_mate(board):
   if board.is_checkmate():
       if board.turn == chess.WHITE:
@@ -94,22 +99,9 @@ def encode_board_only(fen: str) -> list:
                 col_idx += 1
     return encoded
 
-def load_encoded_data(csv_file):
-    X, y = [], []
-    with open(csv_file, newline='') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            fen = row["pos"]
-            turn = int(row["turn"])
-            mat = material_balance(chess.Board(fen))
-            mate = is_mate(chess.Board(fen))
-            result = int(row["result"])
-            board_encoded = encode_board_only(fen)
-            input_vector = board_encoded + [turn] + [mat] + [mate]
-            X.append(input_vector)
-            y.append(result)
-    return np.array(X), np.array(y)
-
+# Currently unused. When input into the network it helped it understand
+# material value better. Without it, it still doesn't get materal 
+# importance.
 def material_balance(board):
     white = board.occupied_co[chess.WHITE]
     black = board.occupied_co[chess.BLACK]
@@ -124,15 +116,21 @@ def material_balance(board):
 class ChessNet(nn.Module):
       def __init__(self):
         super(ChessNet, self).__init__()
-        self.fc1 = nn.Linear(771, 512)
-        self.fc2 = nn.Linear(512, 256)
-        self.fc3 = nn.Linear(256, 1)
+        self.fc1 = nn.Linear(771, 2048)
+        self.fc2 = nn.Linear(2048, 1024)
+        self.fc3 = nn.Linear(1024, 512)
+        self.fc4 = nn.Linear(512, 256)
+        self.fc5 = nn.Linear(256, 128)
+        self.fc6 = nn.Linear(128, 1)
         self.tanh = nn.Tanh()
 
       def forward(self, x):
         x = torch.relu(self.fc1(x))
         x = torch.relu(self.fc2(x))
-        x = self.tanh(self.fc3(x))
+        x = torch.relu(self.fc3(x))
+        x = torch.relu(self.fc4(x))
+        x = torch.relu(self.fc5(x))
+        x = self.tanh(self.fc6(x))
         return x
 
 
@@ -144,60 +142,15 @@ def label_output(value):
     else:
         return 1
 
-def display_chess_board(fen):
-    board = chess.Board(fen)
-    svg_data = chess.svg.board(board, size=250)
-    display(SVG(svg_data))
-
-def read_and_display_first_game(pgn_file):
-    itr = 0
-    with open(pgn_file) as f:
-        game = chess.pgn.read_game(f)
-        if game:
-            board = game.board()
-            for move in game.mainline_moves():
-                board.push(move)
-                itr+=1
-                if itr == 80:
-                    encoding = encode_board_only(board.fen().split()[0])
-                    turn = 1 if board.turn == chess.WHITE else 0
-                    mat = material_balance(chess.Board(fen))
-                    mate = is_mate(chess.Board(fen))
-                    inp = encoding + [turn] + [mat] + [mate]
-                    e = torch.tensor(np.array(inp), dtype=torch.float32)
-
-                    print(turn)
-
-                    model.eval()
-
-                    pos = e.unsqueeze(0)
-
-                    with torch.no_grad():
-                        output = model(pos)
-                        prediction = output
-                    print(prediction)
-
-                    result_str = game.headers.get("Result", "*")
-                    if result_str == "1-0":
-                        print('White won')
-                    elif result_str == "0-1":
-                        print('Black won')
-                    elif result_str == "1/2-1/2":
-                        print('Tie')
-                    else:
-                        continue
-
-                    display_chess_board(board.fen())
-        else:
-            print("No games found in the PGN file.")
-
-
 if __name__ == "__main__":
     data_loader = DataLoader("../KingBase2019-pgn")
-    num_games = 50000
+    num_games = 2000000
     game_count = 0
-
-    with open("game_positions_mini.csv", "w", newline='') as csvfile:
+   
+    # This takes forever to run, I would suggest only running it once,
+    # then commenting this block of code out. It adds 2M games to a 
+    # csv.
+    '''with open("game_positions_mini.csv", "w", newline='') as csvfile:
         writer = csv.writer(csvfile)
         writer.writerow(["pos", "turn", "result"])
 
@@ -219,12 +172,12 @@ if __name__ == "__main__":
             board = game.board()
             all_moves = list(game.mainline_moves())
 
-            for move in all_moves[:-20]:
-                board.push(move)
+            #for move in all_moves[:-20]:
+            #    board.push(move)
 
-            last_20_moves = all_moves[-20:]
+            #last_20_moves = all_moves[-20:]
 
-            for move in last_20_moves:
+            for move in all_moves:
                 if move in board.legal_moves:
                     board.push(move)
                     pos = board.fen().split()[0]
@@ -238,77 +191,76 @@ if __name__ == "__main__":
             if game_count % 1000 == 0:
                 print(f"Processed {game_count} games...")
 
-    print("Done.")
+    print("Done.")''' 
 
-    X, y = load_encoded_data("game_positions_mini.csv")
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, stratify=y)
-
-    print("Training size:", len(X_train))
-    print("Test size:", len(X_test))
-
-    # Create the model, loss, and optimizer
+    # Create the model, loss function, and optimizer
     model = ChessNet()
     criterion = nn.MSELoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
-
-    # Convert np arrays to tensors
-    X_train = torch.tensor(np.array(X_train), dtype=torch.float32)
-    y_train = torch.tensor(np.array(y_train), dtype=torch.float32).view(-1, 1)
-
     loss_vals = []
-    for epoch in range(1000):
+    batch = 0
+
+    filename = "game_positions_mini.csv"
+    chunksize = 256 # Essentially the batch size. Maybe play around with it.
+    for chunk in pd.read_csv(filename, chunksize=chunksize):
+        X, y = [], []
+        model.train()
+        for _, row in chunk.iterrows():
+            fen = row["pos"]
+            turn = int(row["turn"])
+            # In eariler models I input the meterial balance and if the player 
+            # was mated.
+            mat = math.tanh(material_balance(chess.Board(fen))/10) # Scale mat to between -1 and 1
+            mate = is_mate(chess.Board(fen))
+            result = int(row["result"])
+            board_encoded = encode_board_only(fen)
+            input_vector = board_encoded + [turn] + [mat] + [mate]
+            X.append(input_vector)
+            y.append(result)
+
+        #X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+        # Convert numpy arrays to tensors
+        X_train = torch.tensor(np.array(X), dtype=torch.float32)
+        y_train = torch.tensor(np.array(y), dtype=torch.float32).view(-1, 1)
+       
         optimizer.zero_grad()
         output = model(X_train)
         loss = criterion(output, y_train)
         loss.backward()
         optimizer.step()
-
         loss_vals.append(loss.item())
-        if epoch % 100 == 0:
-            print(f"Epoch {epoch}, Loss: {loss.item()}")
 
+        if batch % 1000 == 0:
+            print(f"batch {batch}, Loss: {loss.item()}")
 
+            X_test = torch.tensor(np.array(X), dtype=torch.float32)
+            y_test = torch.tensor(np.array(y), dtype=torch.float32).view(-1, 1)
+
+            model.eval()
+
+            with torch.no_grad():
+                output = model(X_test)
+
+            predictions = output.numpy().flatten()
+            predicted_labels = np.array([label_output(val) for val in predictions])
+
+            true_labels = y_test.numpy().flatten()
+            true_labels_labeled = np.array([label_output(val) for val in true_labels])
+
+            accuracy = accuracy_score(true_labels_labeled, predicted_labels)
+            print(f"Test Accuracy: {accuracy * 100:.2f}%")
+
+            criterion = nn.MSELoss()
+            test_loss = criterion(output, y_test)
+            print(f"Test Loss (MSE): {test_loss.item():.4f}")
+        batch = batch + 1
+
+    # Plot training loss curve
     plt.plot(loss_vals)
-    plt.xlabel("Epochs")
+    plt.xlabel("batchs")
     plt.ylabel("Loss")
     plt.title("Training Loss Curve")
     plt.show()
 
-    X_test = torch.tensor(np.array(X_test), dtype=torch.float32)
-    y_test = torch.tensor(np.array(y_test), dtype=torch.float32).view(-1, 1)
-
-    model.eval()
-
-    with torch.no_grad():
-        output = model(X_test)
-
-    predictions = output.numpy().flatten()
-    predicted_labels = np.array([label_output(val) for val in predictions])
-
-    true_labels = y_test.numpy().flatten()
-    true_labels_labeled = np.array([label_output(val) for val in true_labels])
-
-    accuracy = accuracy_score(true_labels_labeled, predicted_labels)
-    print(f"Test Accuracy: {accuracy * 100:.2f}%")
-
-    criterion = nn.MSELoss()
-    test_loss = criterion(output, y_test)
-    print(f"Test Loss (MSE): {test_loss.item():.4f}")
-
-    model.eval()
-
-    for i in range(20):
-        pos = X_test[i]
-        true = y_test[i]
-
-        pos = pos.unsqueeze(0)
-
-        with torch.no_grad():
-            output = model(pos)
-            prediction = output
-
-        print(f"Position {i+1}:")
-        print(f"True Value: {true}")
-        print(f"Predicted Value: {prediction}\n")
-
-    torch.save(model.state_dict(), "EvalModelv1_0.pt")
+    torch.save(model.state_dict(), "EvalModelv4_0.pt")
