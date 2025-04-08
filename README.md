@@ -9,7 +9,7 @@
   <br />
 </p>
 
----
+#### 
 
 ## 📌 About
 
@@ -23,16 +23,24 @@ ChessBAKEN is a chess engine built in Python, using `pygame` for an interactive 
 🖱️ Click-and-drag piece movement  
 🔄 Quick board reset with `Ctrl + R`  
 
----
-
 ## 🚀 Dependencies
 
 ### Using pip
 ```sh
-pip install chess
+pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+pip install python-chess
+pip install numpy
+pip install pandas
+pip install scikit-learn
+pip install matplotlib
 pip install pygame
 ```
 ### Using conda
 ```sh
-conda install chess
-conda install pygame
+conda install pytorch torchvision torchaudio cpuonly -c pytorch
+conda install chess -c conda-forge
+conda install numpy -c conda-forge
+conda install pandas -c conda-forge
+conda install scikit-learn -c conda-forge
+conda install matplotlib -c conda-forge
+conda install pygame -c conda-forge
