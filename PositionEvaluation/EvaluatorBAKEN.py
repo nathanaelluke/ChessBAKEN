@@ -116,7 +116,7 @@ def material_balance(board):
 class ChessNet(nn.Module):
       def __init__(self):
         super(ChessNet, self).__init__()
-        self.fc1 = nn.Linear(771, 2048)
+        self.fc1 = nn.Linear(769, 2048)
         self.fc2 = nn.Linear(2048, 1024)
         self.fc3 = nn.Linear(1024, 512)
         self.fc4 = nn.Linear(512, 256)
@@ -132,6 +132,7 @@ class ChessNet(nn.Module):
         x = torch.relu(self.fc5(x))
         x = self.tanh(self.fc6(x))
         return x
+
 
 
 def label_output(value):
@@ -201,7 +202,7 @@ if __name__ == "__main__":
     batch = 0
 
     filename = "game_positions_mini.csv"
-    chunksize = 256 # Essentially the batch size. Maybe play around with it.
+    chunksize = 10000 # Essentially the batch size. Maybe play around with it.
     for chunk in pd.read_csv(filename, chunksize=chunksize):
         X, y = [], []
         model.train()
@@ -224,12 +225,13 @@ if __name__ == "__main__":
         X_train = torch.tensor(np.array(X), dtype=torch.float32)
         y_train = torch.tensor(np.array(y), dtype=torch.float32).view(-1, 1)
        
-        optimizer.zero_grad()
-        output = model(X_train)
-        loss = criterion(output, y_train)
-        loss.backward()
-        optimizer.step()
-        loss_vals.append(loss.item())
+        for epoch in range(1000):
+            optimizer.zero_grad()
+            output = model(X_train)
+            loss = criterion(output, y_train)
+            loss.backward()
+            optimizer.step()
+            loss_vals.append(loss.item())
 
         if batch % 1000 == 0:
             print(f"batch {batch}, Loss: {loss.item()}")
@@ -263,4 +265,4 @@ if __name__ == "__main__":
     plt.title("Training Loss Curve")
     plt.show()
 
-    torch.save(model.state_dict(), "EvalModelv4_0.pt")
+    torch.save(model.state_dict(), "EvalModelv4_1.pt")
