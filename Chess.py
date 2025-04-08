@@ -62,7 +62,7 @@ def displayGame():
     running = True # If the game is running
 
     model = Eval.ChessNet()
-    model.load_state_dict(torch.load("PositionEvaluation/EvalModelv0_1.pt"))
+    model.load_state_dict(torch.load("PositionEvaluation/EvalModelv3_1.pt"))
     model.eval()
     
     while running:
@@ -102,10 +102,10 @@ def displayGame():
                     board.push(move)
                     print(board)
                     turn = 1 if board.turn == chess.WHITE else 0
-                    mat = Eval.material_balance(board)
-                    mate = Eval.is_mate(board)
+                    #mat = Eval.material_balance(board)
+                    #mate = Eval.is_mate(board)
                     encoding = Eval.encode_board_only(board.fen().split()[0])
-                    inp = encoding + [turn] + [mat] + [mate]
+                    inp = encoding + [turn]# + [mat] + [mate]
                     e = torch.tensor(np.array(inp), dtype=torch.float32)
                     pos = e.unsqueeze(0)
 
