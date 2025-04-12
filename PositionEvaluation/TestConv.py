@@ -177,50 +177,51 @@ if __name__ == "__main__":
 
     game = chess.pgn.Game()
 
-
     while True:
-      inFen = input()
-      board = chess.Board(inFen)
+        print("\nInput FEN:")
+        inFen = input()
+        board = chess.Board(inFen)
 
-      if board:
-          print("Original Board:")
-          display(board)
+        if board:
+            print("Original Board:")
+            
+            display(board)
 
-          legal_moves = list(board.legal_moves)
+            legal_moves = list(board.legal_moves)
 
-          predictions = []
-          for move in legal_moves:
-              board.push(move)
-              fen = board.fen()
-              encoded_board = encode_board_only(fen)
-              input_tensor = torch.tensor(encoded_board, dtype=torch.float32).unsqueeze(0)
+            predictions = []
+            for move in legal_moves:
+                board.push(move)
+                fen = board.fen()
+                encoded_board = encode_board_only(fen)
+                input_tensor = torch.tensor(encoded_board, dtype=torch.float32).unsqueeze(0)
 
-              with torch.no_grad():
-                  prediction = model(input_tensor)
+                with torch.no_grad():
+                    prediction = model(input_tensor)
 
-              evaluation = prediction.item()
-              predictions.append({"move": move.uci(), "evaluation": evaluation})
-              board.pop()
+                evaluation = prediction.item()
+                predictions.append({"move": move.uci(), "evaluation": evaluation})
+                board.pop()
 
-          # Determine whose turn it is to sort correctly
-          white_to_move = board.turn == chess.WHITE
+            # Determine whose turn it is to sort correctly
+            white_to_move = board.turn == chess.WHITE
 
-          sorted_predictions_best = sorted(predictions, key=lambda x: x["evaluation"], reverse=True)
-          sorted_predictions_worst = sorted(predictions, key=lambda x: x["evaluation"])
+            sorted_predictions_best = sorted(predictions, key=lambda x: x["evaluation"], reverse=True)
+            sorted_predictions_worst = sorted(predictions, key=lambda x: x["evaluation"])
 
-          # Sort predictions based on whose turn it is
-          if white_to_move:
-              print("It is white's turn")
-          else:
-              print("It is black's turn")
+            # Sort predictions based on whose turn it is
+            if white_to_move:
+                print("It is white's turn")
+            else:
+                print("It is black's turn")
 
-          print("\nFive best moves:")
-          for p in sorted_predictions_best[:5]:
-              print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
+            print("\nFive best moves:")
+            for p in sorted_predictions_best[:5]:
+                print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
 
-          print("\nFive worst moves:")
-          for p in sorted_predictions_worst[:5]:
-              print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
+            print("\nFive worst moves:")
+            for p in sorted_predictions_worst[:5]:
+                print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
 
-      else:
-          print("Could not load a game to test.")
+        else:
+            print("Could not load a game to test.")
