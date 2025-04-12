@@ -210,12 +210,12 @@ if __name__ == "__main__":
         else:
             print("It is black's turn")
 
-        print("\nPredictions Sorted by Best (for current player):")
-        for p in sorted_predictions_best:
+        print("\nTop five moves:")
+        for p in sorted_predictions_best[:5]:
             print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
 
-        print("\nPredictions Sorted by Worst (for current player):")
-        for p in sorted_predictions_worst:
+        print("\nBottom of barrel five:")
+        for p in sorted_predictions_worst[:5]:
             print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
 
     else:
