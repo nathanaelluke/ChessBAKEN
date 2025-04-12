@@ -3,6 +3,8 @@ import time
 import threading
 import chess
 from TreeSearch import MCTreeSearch
+from MoveSelector import myFCN
+from Evaluator import ChessNet
 
 class BAKEN:
     """
@@ -184,12 +186,13 @@ class BAKEN:
             thinking_time = base_time + 0.7 * increment
 
         start_time = time.time()
-        while time.time() - start_time < thinking_time:
+        while time.time() - start_time < thinking_time/1000:
             if self.stop_event.is_set():
                 break
             self.tree_search.search_iteration()
         
         best_move = self.tree_search.get_move_list()[0][0]
+        self.tree_search.play_move(chess.Move.from_uci(best_move))
         print(f"bestmove {best_move}", flush=True)
 
 
@@ -198,11 +201,12 @@ def main():
     """
     Runs the engine.
     """
-    selector_path = "path/to/selector/model.pth"
-    evaluator_path = "path/to/evaluator/model.pth"
+    selector_path = "MoveSelectorV1.7.pt"
+    evaluator_path = "ConvModv2_1.pt"
     exploration_constant = 2.0
 
     engine = BAKEN(selector_path, evaluator_path, exploration_constant)
+    print("BAKEN engine initialized.")
     engine.run()
 
 if __name__ == "__main__":

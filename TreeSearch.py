@@ -94,7 +94,7 @@ class MCTreeSearch:
         Args:
             move (chess.Move): The move to play.
         """
-        self.root = self.root.children[move]
+        self.root = self.root.children[move.uci()]
         self.root.parent = None
 
     def get_move_list(self) -> list[tuple[str, float]]:
@@ -111,6 +111,7 @@ class MCTreeSearch:
             if child_node.visits != 0:
                 moves.append((move, child_node.score / child_node.visits))
         moves.sort(key=lambda x: x[1], reverse=True)
+        return moves
 
     def _expand_node(self, node: MCTreeNode) -> None:
         """
@@ -119,8 +120,12 @@ class MCTreeSearch:
             node (MCTreeNode): The node to expand.
         """
         moves = self.move_selector.get_move_probabilities(node.state)
+
+        if len(moves) == 0:
+            return
+
         # only consider moves that the model suggests with a probability > 1%
-        moves = list(moves.filter(lambda move: move[1] > 0.01))
+        moves = list(filter(lambda move: move[1] > 0.01, moves))
 
         for move, _ in moves:
             new_state = node.state.copy()
@@ -139,7 +144,7 @@ class MCTreeSearch:
         player_sign = 1 if node.state.turn == chess.WHITE else -1
         curr_state_copy = node.state.copy()
         
-        for _ in range(50):
+        for _ in range(0):
             move = self.move_selector.get_move_probabilities(curr_state_copy)[0][0]
             curr_state_copy.push(chess.Move.from_uci(move))
             if curr_state_copy.is_game_over():
