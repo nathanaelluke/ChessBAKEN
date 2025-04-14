@@ -169,7 +169,7 @@ if __name__ == "__main__":
     # Load the trained model
     model = ChessNet()
     try:
-        model.load_state_dict(torch.load("ConvModv1_0.pt"))
+        model.load_state_dict(torch.load("ConvModv2_2.pt"))
         model.eval()
     except FileNotFoundError:
         print("Error: 'ConvModv1_0.pt' not found. Make sure the model file exists in the correct directory.")
@@ -178,8 +178,12 @@ if __name__ == "__main__":
     game = chess.pgn.Game()
 
     while True:
-        print("\nInput FEN:")
+        print("\nInput FEN to evaluate postions or Done to exit:")
         inFen = input()
+
+        if inFen == "Done":
+            break
+
         board = chess.Board(inFen)
 
         if board:
@@ -214,13 +218,11 @@ if __name__ == "__main__":
                 print("It is white's turn")
             else:
                 print("It is black's turn")
-
-            print("\nFive best moves:")
-            for p in sorted_predictions_best[:5]:
-                print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
-
-            print("\nFive worst moves:")
-            for p in sorted_predictions_worst[:5]:
+            
+            print("\nIf eval > 0, oppenent believes your move gives them a winning position")
+            print("If eval < 0 oppenent believes your move gives them a losing position")
+            print("\nEvaluation of postion caused by a given move:")
+            for p in sorted_predictions_best:
                 print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
 
         else:
