@@ -219,8 +219,8 @@ if __name__ == "__main__":
             else:
                 print("It is black's turn")
             
-            print("\nIf eval > 0, oppenent believes your move gives them a winning position")
-            print("If eval < 0 oppenent believes your move gives them a losing position")
+            print("\nIf eval > 0, oppenent believes white is winning the position")
+            print("If eval < 0 oppenent believes white is losing the postion")
             print("\nEvaluation of postion caused by a given move:")
             for p in sorted_predictions_best:
                 print(f"Move: {p['move']}, Predicted Evaluation: {p['evaluation']:.4f}")
