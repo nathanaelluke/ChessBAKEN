@@ -17,11 +17,8 @@ ChessBAKEN is a chess engine built in Python, using `pygame` for an interactive 
 
 ### **✨ Features**
 🕸️ Neural net powered move selector and position evaluator  
-✅ Graphical chessboard
-♟️ Legal move validation with `python-chess`  
-🔍 Highlights for check & checkmate  
-🖱️ Click-and-drag piece movement  
-🔄 Quick board reset with `Ctrl + R`  
+✅ UCI compatible
+♟️ Plays legal chess moves  
 
 ## 🚀 Dependencies
 
