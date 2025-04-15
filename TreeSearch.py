@@ -70,7 +70,10 @@ class MCTreeSearch:
         self.root = MCTreeNode(root_state, exploration_constant)
         self.move_selector = MoveSelector(selector_path)
         self.evaluator = Evaluator(evaluator_path)
-
+    
+    def set_exploration_constant(self, value):
+        self.exploration_constant = value
+        
     def search_iteration(self) -> None:
         """
         Performs one iteration of the Monte Carlo Tree Search.
@@ -112,6 +115,22 @@ class MCTreeSearch:
                 moves.append((move, child_node.score / child_node.visits))
         moves.sort(key=lambda x: x[1], reverse=True)
         return moves
+
+    def add_move(self, move, node: MCTreeNode) -> None:
+        new_state = node.state.copy()
+        new_state.push(chess.Move.from_uci(move))
+        child_node = MCTreeNode(new_state, self.exploration_constant, node)
+        node.children[move] = child_node
+
+    def reset_to_position(self, board_state: chess.Board) -> None:
+        """
+        Resets the search tree to start from a new root state.
+        Discards the old tree.
+        """
+        # Create a new root node for the MCTS
+        self.root = MCTreeNode(board_state.copy(), self.exploration_constant)
+        # Optionally, update the stored initial state if you use it elsewhere
+        self.initial_root_state = board_state.copy() # If you have this attribute
 
     def _expand_node(self, node: MCTreeNode) -> None:
         """
@@ -166,3 +185,47 @@ class MCTreeSearch:
             score *= -1
         curr_node.visits += 1
         curr_node.score += score
+
+    def get_principal_variation(self):
+        # Simulate PV
+        return [move.uci() for move in list(self.root.state.legal_moves)[:3]]
+
+    def get_root_score_cp(self):
+        # Simulate score
+        import random
+        return random.randint(-150, 150)
+
+    def get_move_list(self):
+         # Simulate getting sorted moves
+         moves = list(self.root.state.legal_moves)
+         if not moves:
+             return []
+         # Return in format [(move_uci, score/visits), ...]
+         return [(moves[0].uci(), 100)]
+
+    def get_effective_depth(self) -> int:
+        """
+        Calculates the maximum depth reached in the search tree by any branch.
+        Depth is measured in plies (number of moves) from the root (depth 0).
+
+        Returns:
+            int: The maximum depth explored from the root.
+        """
+        if not self.root:
+            return 0
+
+        max_depth = 0
+        stack = [(self.root, 0)]  # Store tuples of (node, depth)
+
+        while stack:
+            current_node, current_depth = stack.pop()
+
+            # Update max depth found so far
+            max_depth = max(max_depth, current_depth)
+
+            # Add children to the stack for further exploration
+            # Iterate through values (child nodes) directly
+            for child_node in current_node.children.values():
+                stack.append((child_node, current_depth + 1))
+
+        return max_depth
