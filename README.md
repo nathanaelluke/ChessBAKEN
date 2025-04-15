@@ -25,6 +25,8 @@ ChessBAKEN is a chess engine built in Python, using `pygame` for an interactive 
 
 ## 🚀 Dependencies
 
+[Arena Chess GUI](http://www.playwitharena.de/downloads/arena_3.5.1.zip)
+
 ### Using pip
 ```sh
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
