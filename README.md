@@ -46,3 +46,11 @@ conda install pandas -c conda-forge
 conda install scikit-learn -c conda-forge
 conda install matplotlib -c conda-forge
 conda install pygame -c conda-forge
+```
+## 💻 Installation 
+```sh
+# From ChessBAKEN directory
+python -m PyInstaller --onefile BAKEN.py
+cp dist/BAKEN.exe .
+```
+Install BAKEN.exe in UCI GUI.
