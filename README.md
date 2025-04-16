@@ -13,7 +13,7 @@
 
 ## 📌 About
 
-ChessBAKEN is a chess engine built in Python, compatible with UCI GUIs, uses `python-chess` for move validation and game logic. 
+ChessBAKEN is a chess engine built in Python. It is compatible with UCI GUIs and uses `python-chess` for move validation and game logic. 
 
 ## ✨ Features
 
@@ -24,33 +24,24 @@ ChessBAKEN is a chess engine built in Python, compatible with UCI GUIs, uses `py
 ♟️ Plays legal chess moves  
 
 ## 🚀 Dependencies
-
-[Arena Chess GUI](http://www.playwitharena.de/downloads/arena_3.5.1.zip)
-
-### Using pip
 ```sh
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 pip install python-chess
 pip install numpy
-pip install pandas
-pip install scikit-learn
-pip install matplotlib
-pip install pygame
+pip install PyInstaller
 ```
-### Using conda
-```sh
-conda install pytorch torchvision torchaudio cpuonly -c pytorch
-conda install chess -c conda-forge
-conda install numpy -c conda-forge
-conda install pandas -c conda-forge
-conda install scikit-learn -c conda-forge
-conda install matplotlib -c conda-forge
-conda install pygame -c conda-forge
-```
+
 ## 💻 Installation 
 ```sh
-# From ChessBAKEN directory
+git clone https://github.com/averyrair/ChessBAKEN
+cd ChessBAKEN
 python -m PyInstaller --onefile BAKEN.py
-cp dist/BAKEN.exe .
+cp dist/BAKEN .
 ```
-Install BAKEN.exe in UCI GUI.
+Import BAKEN binary as an engine in a UCI compatible GUI or run from the command line! 😀
+```sh
+./BAKEN
+```
+
+## ♛ Recommended UCI GUI
+[Arena Chess](http://www.playwitharena.de/downloads/arena_3.5.1.zip)
