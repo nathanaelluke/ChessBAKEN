@@ -4,71 +4,7 @@ import torch.optim as optim
 import chess
 import chess.pgn
 import os
-import csv
 import numpy as np
-import pandas as pd
-from torch.utils.data import IterableDataset
-from sklearn.model_selection import train_test_split
-import matplotlib.pyplot as plt
-from sklearn.metrics import accuracy_score
-from sklearn.metrics import mean_squared_error
-from IPython.display import display, SVG
-from itertools import dropwhile, takewhile
-import math
-import torch.nn.functional as F
-
-class DataLoader:
-    def __init__(self, data_path):
-        self.data_path = data_path
-        self.cached_games = []
-        self.cache_size = 1000
-        self.current_file = 0
-        self.current_offset = 0
-        self.load_games()
-
-    def get_next_game(self):
-        if (self.cached_games == []):
-            self.load_games()
-        if (self.cached_games == []):
-            return None
-        return self.cached_games.pop(0)
-
-    def load_games(self):
-        files = os.listdir(self.data_path)
-        while len(self.cached_games) < self.cache_size and self.current_file < len(files):
-            file_path = f"{self.data_path}/{files[self.current_file]}"
-            try:
-                with open(file_path, 'r', encoding='latin-1') as f:
-                    f.seek(self.current_offset)
-                    while len(self.cached_games) < self.cache_size:
-                        start_offset = f.tell()
-                        try:
-                            game = chess.pgn.read_game(f)
-                            self.current_offset = f.tell()
-                        except Exception as e_read:
-                            print(f"Error reading game from {files[self.current_file]} at offset {start_offset}: {e_read}")
-                            self.current_offset = 0
-                            break
-
-                        if game is None:
-                            self.current_file += 1
-                            self.current_offset = 0
-                            break
-                        self.cached_games.append(game)
-
-            except FileNotFoundError:
-                print(f"Warning: File not found {file_path}. Skipping.")
-                self.current_file += 1
-                self.current_offset = 0
-            except Exception as e_open:
-                print(f"Error opening or seeking in file {file_path}: {e_open}")
-                self.current_file += 1
-                self.current_offset = 0
-            if self.current_offset == 0 and len(self.cached_games) < self.cache_size:
-                if game is None:
-                    pass
-                else:
-                    self.current_file += 1
 
 def encode_board_only(fen: str) -> np.ndarray:
     encoded_data = np.zeros((12, 8, 8), dtype=np.float32)
@@ -189,7 +125,7 @@ if __name__ == "__main__":
         if board:
             print("Original Board:")
             
-            display(board)
+            print(board)
 
             legal_moves = list(board.legal_moves)
 
