@@ -272,65 +272,55 @@ class BAKEN:
         # Convert thinking_time (ms) to seconds for comparison with time.time()
         thinking_time_seconds = float("inf") if thinking_time == float("inf") else thinking_time / 1000.0
 
-        try: # Wrap search loop in try/except for safety
-            while True:
-                current_time = time.time()
-                elapsed_time_seconds = current_time - start_time
+        while True:
+            current_time = time.time()
+            elapsed_time_seconds = current_time - start_time
 
-                # Check stop conditions (ORDER MATTERS: check external stop first)
-                if self.stop_event.is_set():
+            if self.stop_event.is_set():
+                break
+
+            if thinking_time_seconds != float("inf") and elapsed_time_seconds >= thinking_time_seconds:
                     break
 
-                # Check time limit
-                if thinking_time_seconds != float("inf") and elapsed_time_seconds >= thinking_time_seconds:
-                     break
-
-                # --- Perform one iteration/batch of MCTS ---
-                nodes_this_iteration = self.tree_search.search_iteration()
-                if nodes_this_iteration: # Add nodes if search_iteration returns them
-                    nodes_searched_total += nodes_this_iteration
-                else:
-                     nodes_searched_total += 1 # Basic increment if nodes aren't returned
+            nodes_this_iteration = self.tree_search.search_iteration()
+            if nodes_this_iteration: # Add nodes if search_iteration returns them
+                nodes_searched_total += nodes_this_iteration
+            else:
+                    nodes_searched_total += 1 # Basic increment if nodes aren't returned
 
 
-                # --- Send Info Periodically (e.g., every second) ---
-                if current_time - last_info_time >= 1.0 or elapsed_time_seconds >= thinking_time_seconds:
-                    last_info_time = current_time
-                    # Get data from self.tree_search (replace with actual calls)
-                    pv_list = self.tree_search.get_principal_variation() # -> ['e2e4', 'c7c5']
-                    score_cp = self.tree_search.get_root_score_cp() # -> centipawns or None
-                    depth = self.tree_search.get_effective_depth() # -> integer or None
-                    #nodes = self.tree_search.get_total_nodes() # -> Use nodes_searched_total
+            # --- Send Info Periodically (e.g., every second) ---
+            if current_time - last_info_time >= 1.0 or elapsed_time_seconds >= thinking_time_seconds:
+                last_info_time = current_time
+                # Get data from self.tree_search (replace with actual calls)
+                pv_list = self.tree_search.get_principal_variation() # -> ['e2e4', 'c7c5']
+                score_cp = self.tree_search.get_root_score_cp() # -> centipawns or None
+                depth = self.tree_search.get_effective_depth() # -> integer or None
+                #nodes = self.tree_search.get_total_nodes() # -> Use nodes_searched_total
 
-                    pv_string = " ".join(pv_list)
-                    time_ms = int(elapsed_time_seconds * 1000)
-                    nps = int(nodes_searched_total / elapsed_time_seconds) if elapsed_time_seconds > 0 else 0
+                pv_string = " ".join(pv_list)
+                time_ms = int(elapsed_time_seconds * 1000)
+                nps = int(nodes_searched_total / elapsed_time_seconds) if elapsed_time_seconds > 0 else 0
 
-                    # Construct the info string
-                    info_parts = ["info"]
-                    if depth is not None: info_parts.append(f"depth {depth}")
-                    if score_cp is not None: info_parts.append(f"score cp {score_cp}")
-                    info_parts.append(f"nodes {nodes_searched_total}")
-                    if nps > 0 : info_parts.append(f"nps {nps}")
-                    info_parts.append(f"time {time_ms}")
-                    if pv_string: info_parts.append(f"pv {pv_string}")
+                # Construct the info string
+                info_parts = ["info"]
+                if depth is not None: info_parts.append(f"depth {depth}")
+                if score_cp is not None: info_parts.append(f"score cp {score_cp}")
+                info_parts.append(f"nodes {nodes_searched_total}")
+                if nps > 0 : info_parts.append(f"nps {nps}")
+                info_parts.append(f"time {time_ms}")
+                if pv_string: info_parts.append(f"pv {pv_string}")
 
-                    print(" ".join(info_parts), flush=True) # Send info string
+                print(" ".join(info_parts), flush=True) # Send info string
 
-                # Optional: Yield control briefly to allow other threads
-                # time.sleep(0.001) # Can help responsiveness but slows down search
+            # Optional: Yield control briefly to allow other threads
+            # time.sleep(0.001) # Can help responsiveness but slows down search
 
-            if self.stop_event.is_set() or (thinking_time_seconds != float("inf")):
-                final_move_list = self.tree_search.get_move_list()
-                best_move = final_move_list[0][0] # Assuming format [(move_uci, score/visits), ...]
-                print(f"bestmove {best_move}", flush=True)
-
-        except Exception as e:
-             print(f"info string CRITICAL ERROR in search thread: {e}", flush=True, file=sys.stderr)
-             import traceback
-             traceback.print_exc(file=sys.stderr)
-             # Attempt to send a null move to signal failure?
-             print("bestmove 0000", flush=True)
+        if self.stop_event.is_set() or (thinking_time_seconds != float("inf")):
+            final_move_list = self.tree_search.get_move_list()
+            print(final_move_list)
+            best_move = final_move_list[0][0] # Assuming format [(move_uci, score/visits), ...]
+            print(f"bestmove {best_move}", flush=True)
 
 def main():
     """

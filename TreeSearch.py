@@ -195,14 +195,6 @@ class MCTreeSearch:
         import random
         return random.randint(-150, 150)
 
-    def get_move_list(self):
-         # Simulate getting sorted moves
-         moves = list(self.root.state.legal_moves)
-         if not moves:
-             return []
-         # Return in format [(move_uci, score/visits), ...]
-         return [(moves[0].uci(), 100)]
-
     def get_effective_depth(self) -> int:
         """
         Calculates the maximum depth reached in the search tree by any branch.
