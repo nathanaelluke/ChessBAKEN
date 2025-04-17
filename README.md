@@ -46,5 +46,8 @@ Import BAKEN binary as an engine in a UCI compatible GUI or run from the command
 ## ♛ Recommended UCI GUI
 [Arena Chess](http://www.playwitharena.de/downloads/arena_3.5.1.zip)
 
-## ♖ Game played by v0.1.3 (BAKEN black) (Martin Chess.com bot white)
+## ♖ Games played by v0.1.3 against Chess.com's Martin Bot
+### Victory for Martin (White) against BAKEN (Black)
 ![Chess Board](/Images/Martin%20vs%20BAKEN%20(Game%201).gif)
+### Draw between Martin (White) and BAKEN (Black)
+![Chess Board](/Images/Martin%20vs%20BAKEN%20(Game%202).gif)
