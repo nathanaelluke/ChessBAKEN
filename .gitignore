@@ -2,3 +2,10 @@
 BAKEN.exe
 BAKEN.spec
 construct.yaml
+__pycache__/*
+build/*
+dist/*
+PositionEvaluation/TestConv.py
+__pycache__/Evaluator.cpython-311.pyc
+__pycache__/MoveSelector.cpython-311.pyc
+__pycache__/TreeSearch.cpython-311.pyc
