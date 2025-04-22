@@ -51,3 +51,13 @@ Import BAKEN binary as an engine in a UCI compatible GUI or run from the command
 ![Chess Board](/Images/Martin%20vs%20BAKEN%20(Game%201).gif)
 ### Draw between Martin (Black) and BAKEN (White)
 ![Chess Board](/Images/Martin%20vs%20BAKEN%20(Game%202).gif)
+
+## Lichess Account
+https://lichess.org/@/ChessBAKEN
+Instructions for setting up lichess-bot: https://github.com/lichess-bot-devs/lichess-bot/wiki/How-to-Install
+### Instructions to play against ChessBAKEN on Lichess
+1. Navigate to your lichess-bot directory
+2. Start up the python virtual environment: `source ./venv/bin/activate`
+3. Start the bot: `python3 lichess-bot.py`
+4. Log in to another Lichess account
+5. Go to the ChessBAKEN account and challenge it to a game
