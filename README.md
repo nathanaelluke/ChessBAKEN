@@ -54,6 +54,7 @@ Import BAKEN binary as an engine in a UCI compatible GUI or run from the command
 
 ## Lichess Account
 https://lichess.org/@/ChessBAKEN
+
 Instructions for setting up lichess-bot: https://github.com/lichess-bot-devs/lichess-bot/wiki/How-to-Install
 ### Instructions to play against ChessBAKEN on Lichess
 1. Navigate to your lichess-bot directory
