@@ -11,19 +11,19 @@
 
 #### 
 
-## 📌 About
+## About
 
 ChessBAKEN is a chess engine built in Python. It is compatible with UCI GUIs and uses `python-chess` for move validation and game logic. 
 
-## ✨ Features
+## Features
 
-🕸️ Neural net powered move selector and position evaluator  
+- 🕸️ Neural net powered move selector and position evaluator  
 
-✅ UCI compatible
+- ✅ UCI compatible
 
-♟️ Plays legal chess moves  
+- ♟️ Plays legal chess moves  
 
-## 🚀 Dependencies
+## Dependencies
 ```sh
 pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
 pip install python-chess
@@ -31,7 +31,7 @@ pip install numpy
 pip install PyInstaller
 ```
 
-## 💻 Installation 
+## Installation 
 ```sh
 git clone https://github.com/averyrair/ChessBAKEN
 cd ChessBAKEN
@@ -43,10 +43,10 @@ Import BAKEN binary as an engine in a UCI compatible GUI or run from the command
 ./BAKEN
 ```
 
-## ♛ Recommended UCI GUI
+## Recommended UCI GUI
 [Arena Chess](http://www.playwitharena.de/downloads/arena_3.5.1.zip)
 
-## 🤖 Games played by v0.1.3 against Chess.com's Martin Bot
+## Games played by v0.1.3 against Chess.com's Martin Bot
 ### Victory for Martin (White) against BAKEN (Black)
 ![Chess Board](/Images/Martin%20vs%20BAKEN%20(Game%201).gif)
 ### Draw between Martin (Black) and BAKEN (White)
